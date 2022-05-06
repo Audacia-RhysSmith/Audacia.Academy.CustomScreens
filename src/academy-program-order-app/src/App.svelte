@@ -104,9 +104,6 @@
 
     });
     });
-
-    
-
   });
   
   function update(event) {

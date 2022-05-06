@@ -30,23 +30,9 @@ class AcademyProgramPlanContext {
     return data;
   }
 
-  async getTestTeams() {
+  async getTeamModules() {
     const res = await fetch(
-      'https://api.gridfox.com/data/TestTeams?PageSize=1000&Descending=true',
-      {
-        headers: {
-          'gridfox-api-key': this.key,
-        },
-      }
-    );
-    const data = await res.json();
-
-    return data;
-  }
-
-  async getTestTeamModules() {
-    const res = await fetch(
-      'https://api.gridfox.com/data/TestTeamModules?PageSize=1000&Descending=true',
+      'https://api.gridfox.com/data/TeamModules?PageSize=1000&Descending=true',
       {
         headers: {
           'gridfox-api-key': this.key,
@@ -65,7 +51,7 @@ class AcademyProgramPlanContext {
     };
 
     const res = await fetch(
-      'https://api.gridfox.com/data/TestTeamModules/' + reference,
+      'https://api.gridfox.com/data/TeamModules/' + reference,
       {
         method: 'PUT',
         headers: {
