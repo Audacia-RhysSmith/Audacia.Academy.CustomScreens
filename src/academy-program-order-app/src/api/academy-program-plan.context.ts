@@ -18,24 +18,7 @@ class AcademyProgramPlanContext {
       id: reference,
       ordinal: ordinalValue
     };
-    console.log(reference, up);
-    // return await gridfoxHttp.put('/data/TestTeamModules/' + reference, up);
-  }
-
-  getModulesForTeam (teamModules, readonlyModules, team) {
-    const modules = [];
-    const qaModules = teamModules.filter((p) => p.teamId === team.id).sort((a, b) => a.ordinal - b.ordinal);
-    qaModules.forEach((teamModule, index) => {
-
-      const foundModuleIndex = readonlyModules.findIndex((moduleItem) => moduleItem.id === teamModule.moduleId);
-      if (foundModuleIndex > -1) {
-        const foundModule = readonlyModules[foundModuleIndex];
-        modules.push(foundModule);
-      }
-    });
-    team.modules = modules;
-    console.log(modules);
-    return team;
+    return await gridfoxHttp.put('/data/TeamModules/' + reference, up);
   }
 }
 

@@ -1,36 +1,27 @@
 <script lang="ts">
   import DragDropList from "./lib/DragDropList.svelte";
+  import {differenceWith, isEqual, cloneDeep} from "lodash";
   import academyProgramPlanContext from './api/academy-program-plan.context';
+  import IdTextPair from './models/id-text-pair.model'
+  import Team from './models/team.model';
+  import TeamModule from './models/team-module.model';
 
-  let readonlyModules = [];
-
-  // let teams = [];
-
-  let teams = [];
-  let teamModules = [];
+  let readonlyModules = [] as IdTextPair[];
+  let teams = [] as Team[];
+  let teamModules = [] as TeamModule[];
+  let cachedTeamModules = [] as TeamModule[];
 
   const mapModules = (data) => {
-    readonlyModules = data.records.map((item) => ({
-      id: item.id,
-      text: item.name
-    }));
+    readonlyModules = data.records.map((item) => { return new IdTextPair(item.id, item.name) });
   };
 
   const mapTeams = (data) => {
-    teams = data.records.map((item) => ({
-      id: item.id,
-      name: item.name,
-      modules: []
-    }));
+    teams = data.records.map((item) => { return new Team(item.id, item.name, []) });
   };
 
   const mapTeamModules = (data) => {
-    teamModules = data.records.map((item) => ({
-      id: item.id,
-      moduleId: item.module,
-      teamId: item.team,
-      ordinal: item.ordinal,
-    }));
+    teamModules = data.records.map((item) => { return new TeamModule(item.id, item.module, item.team, item.ordinal) });
+    cachedTeamModules = cloneDeep(teamModules);
   };
 
   const gridfoxCalls = [
@@ -39,12 +30,10 @@
     {call: academyProgramPlanContext.getTeamModules(),  func: mapTeamModules },
   ];
 
-
-  // Seens as though each call is independant of each other
+  // Seens as though each call is independant of each other :heavy_check_mark:
   // We can call all endpoints asynchronously using Promise.all 
 
   Promise.all(gridfoxCalls.map((item) => item.call)).then((values) => {
-    
     // values is each to and array of each calls returned data;
     // promise.all keeps the order of the request the same so we can use index
     values.forEach((value, index) => {
@@ -53,36 +42,59 @@
     });
 
     teams.forEach((team, index) => {
-      console.log(team);
-      teams[index] = academyProgramPlanContext.getModulesForTeam(teamModules, readonlyModules, team);
+      teams[index] = getModulesForTeam(teamModules, readonlyModules, team);
     });
   });
 
+  function getModulesForTeam(teamModules, readonlyModules, team) {
+    const modules = [];
+    const qaModules = teamModules.filter((p) => p.teamId === team.id).sort((a, b) => a.ordinal - b.ordinal);
+    qaModules.forEach((teamModule, index) => {
+
+      const foundModuleIndex = readonlyModules.findIndex((moduleItem) => moduleItem.id === teamModule.moduleId);
+      if (foundModuleIndex > -1) {
+        const foundModule = readonlyModules[foundModuleIndex];
+        foundModule.ordinal = index;
+        modules.push(foundModule);
+      }
+    });
+    team.modules = modules;
+    
+    return team;
+  }
+
+  // Updates the Team Modules when a module is dragged
   function update(event) {
-    const updateRequests = [];
-    // go through and find the each of the modules to update the index
+    recalculateOrdinals();
+    const teamModuleDifferences = differenceWith(teamModules, cachedTeamModules, isEqual);
+
+    console.log('teamModuleDifferences', teamModuleDifferences);
+
+    const requests = [];
+    teamModuleDifferences.forEach((item, index) => {
+      const request = academyProgramPlanContext.updateModules(item.id, item.ordinal);
+      requests.push(request);
+    });
+
+    console.log(requests.length);
+
+    Promise.all(requests).then((res) => { });    
+  }
+
+  // Recalculate the ordinals for the modules
+  function recalculateOrdinals() {
     for (let i = 0; i < teams.length; i++) {
       const team = teams[i];
       
-      // update the ordinal
       for (let j = 0; j < team.modules.length; j++) {
         const element = team.modules[j];
+        const filterTeamModules = teamModules.filter((p)=> p.moduleId === element.id && p.teamId === team.id);
 
-        const ttm = teamModules.filter((p)=> p.moduleId === element.id && p.teamId === team.id);
-
-        if (ttm.length === 1) {
-
-          const req = academyProgramPlanContext.updateModules(ttm[0].id, j);
-          console.log(req);
-          updateRequests.push(req);
+        if (filterTeamModules.length === 1) {
+          filterTeamModules[0].ordinal = j;  
         }
-        
       }
     }
-
-    Promise.all(updateRequests).then((res) => {
-      console.log('done');
-    });
   }
 </script>
 
