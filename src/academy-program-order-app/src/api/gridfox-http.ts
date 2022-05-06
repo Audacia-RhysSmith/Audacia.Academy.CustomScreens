@@ -1,9 +1,12 @@
 class GridfoxHttp {
-    private projectId: string | undefined;
-    private url = (import.meta as any).env.PROD && !location.href.includes('localhost') 
-      ? 'https://api.gridfox.com'
-      : 'https://localhost:44346';
-    private parentURL = new URL(document.referrer);
+    private projectId: string;
+
+    private url = 'https://api.gridfox.com'
+      
+    private apiKey: string = import.meta.env.VITE_GRIDFOX_API_KEY;
+
+    private parentURL = new URL(document.referrer || this.url);
+
     init(): Promise<void> {
       return new Promise((resolve) => {
         document.addEventListener('readystatechange', () => {
@@ -57,7 +60,10 @@ class GridfoxHttp {
       });
     }
     private async getHeaders(isFormData: boolean = false): Promise<Headers> {
-      const token = await this.requestToken();
+      let token: string;
+      if (!this.apiKey) {
+        token = await this.requestToken();
+      }
       const headers = new Headers();
       if (!isFormData) {
         headers.append("Content-Type", "application/json");
@@ -65,6 +71,8 @@ class GridfoxHttp {
       if (token) {
         headers.append('Authorization', `Bearer ${token}`);
         headers.append('gridfox-project-id', this.projectId);
+      } else if (this.apiKey) {
+        headers.append('gridfox-api-key', this.apiKey);
       }
       return headers;
     }
@@ -132,18 +140,6 @@ class GridfoxHttp {
         });
       });
     }
-    // public async changeUserGroup(userId: number, groupName: GroupTypes): Promise<any> {
-    //   const headers = await this.getHeaders(false);
-    //   return new Promise((resolve, reject) => {
-    //     fetch(`${this.url}/users/${userId}`, {
-    //       method: 'PUT',
-    //       headers: headers,
-    //       body: JSON.stringify({ groupName }),
-    //     }).then(
-    //       (res) => this.parseJsonResponse(res, resolve, reject)
-    //     );
-    //   });
-    // };
     public parseJsonResponse(
       res: Response, 
       resolve: (value: unknown) => void,

@@ -1,47 +1,19 @@
+import gridfoxHttp from "./gridfox-http";
+
 class AcademyProgramPlanContext {
     private key =
     '';
 
   async getModules() {
-    const res = await fetch(
-      'https://api.gridfox.com/data/Modules?PageSize=1000&OrderBy=Ordinal&Descending=true',
-      {
-        headers: {
-          'gridfox-api-key': this.key,
-        },
-      }
-    );
-    const data = await res.json();
-
-    return data;
+    return await gridfoxHttp.get('/data/Modules?PageSize=1000&OrderBy=Ordinal&Descending=true');
   }
 
   async getTeams() {
-    const res = await fetch(
-      'https://api.gridfox.com/data/Teams?PageSize=1000&Descending=true',
-      {
-        headers: {
-          'gridfox-api-key': this.key,
-        },
-      }
-    );
-    const data = await res.json();
-
-    return data;
+    return await gridfoxHttp.get('/data/Teams?PageSize=1000&Descending=true');
   }
 
   async getTeamModules() {
-    const res = await fetch(
-      'https://api.gridfox.com/data/TeamModules?PageSize=1000&Descending=true',
-      {
-        headers: {
-          'gridfox-api-key': this.key,
-        },
-      }
-    );
-    const data = await res.json();
-
-    return data;
+    return await gridfoxHttp.get('/data/TeamModules?PageSize=1000&Descending=true');
   }
 
   async updateModules(reference, ordinalValue) {
@@ -50,17 +22,7 @@ class AcademyProgramPlanContext {
       ordinal: ordinalValue
     };
 
-    const res = await fetch(
-      'https://api.gridfox.com/data/TeamModules/' + reference,
-      {
-        method: 'PUT',
-        headers: {
-          'gridfox-api-key': this.key,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(up)
-      }
-    );
+    return await gridfoxHttp.put('/data/TestTeamModules/' + reference, up);
   }
 }
 
