@@ -4,10 +4,10 @@
 
   let readonlyModules = [];
 
-  let teams = [];
+  // let teams = [];
 
-  let testTeams = [];
-  let testTeamModules = [];
+  let teams = [];
+  let teamModules = [];
 
 
   academyProgramPlanContext.getModules().then(data => {
@@ -22,135 +22,104 @@
       teams = data.records.map((item) => {
         return {
           id: item.id,
-          text: item.name,
-          modules: item.modules.map((module, index) => {
-            // find in modules
-            const foundModuleIndex = readonlyModules.findIndex((moduleItem) => moduleItem.id === module.referenceFieldValue);
-
-            if (foundModuleIndex > -1) {
-              const foundModule = readonlyModules[foundModuleIndex];
-              return {
-                id: foundModule.id,
-                text: foundModule.text
-              }
-            }
-                    
-          })
-        }
-      });
-    });
-
-    academyProgramPlanContext.getTestTeams().then(data => {
-      testTeams = data.records.map((item) => {
-        return {
-          id: item.id,
           name: item.name,
           modules: []
         }
       });
 
-      academyProgramPlanContext.getTestTeamModules().then(data => {
-      testTeamModules = data.records.map((item) => {
+      academyProgramPlanContext.getTeamModules().then(data => {
+      teamModules = data.records.map((item) => {
         return {
           id: item.id,
           moduleId: item.module,
-          teamId: item.testTeam,
+          teamId: item.team,
           ordinal: item.ordinal,
         }
       });
       
-      // need to map everything together now...
-      //qa
-      const qaModules = testTeamModules.filter((p) => p.teamId === 3).sort((a, b) => a.ordinal - b.ordinal);
+      // qa
+      const qaModules = teamModules.filter((p) => p.teamId === 3).sort((a, b) => a.ordinal - b.ordinal);
       for (let index = 0; index < qaModules.length; index++) {
         const teamModule = qaModules[index];
         
-        const teamIndex = testTeams.findIndex((testTeam) => testTeam.id === teamModule.teamId);
+        const teamIndex = teams.findIndex((team) => team.id === teamModule.teamId);
         if (teamIndex > -1) {
-          let team = testTeams[teamIndex];
+          let team = teams[teamIndex];
           
           const foundModuleIndex = readonlyModules.findIndex((moduleItem) => moduleItem.id === teamModule.moduleId);
 
           if (foundModuleIndex > -1) {
             const foundModule = readonlyModules[foundModuleIndex];
-            // console.log(foundModule);
            
             team.modules.push(foundModule);
           }
 
-          testTeams[teamIndex] = team;
+          teams[teamIndex] = team;
         }
       }
 
       // full
-      const fullModules = testTeamModules.filter((p) => p.teamId === 1).sort((a, b) => a.ordinal - b.ordinal);
+      const fullModules = teamModules.filter((p) => p.teamId === 1).sort((a, b) => a.ordinal - b.ordinal);
 
       for (let index = 0; index < fullModules.length; index++) {
         const teamModule = fullModules[index];
         
-        const teamIndex = testTeams.findIndex((testTeam) => testTeam.id === teamModule.teamId);
+        const teamIndex = teams.findIndex((team) => team.id === teamModule.teamId);
         if (teamIndex > -1) {
-          let team = testTeams[teamIndex];
+          let team = teams[teamIndex];
           
           const foundModuleIndex = readonlyModules.findIndex((moduleItem) => moduleItem.id === teamModule.moduleId);
 
           if (foundModuleIndex > -1) {
             const foundModule = readonlyModules[foundModuleIndex];
-            // console.log(foundModule);
            
             team.modules.push(foundModule);
           }
 
-          testTeams[teamIndex] = team;
+          teams[teamIndex] = team;
         }
       }
 
       // front
-      const frontModules = testTeamModules.filter((p) => p.teamId === 2).sort((a, b) => a.ordinal - b.ordinal);
+      const frontModules = teamModules.filter((p) => p.teamId === 2).sort((a, b) => a.ordinal - b.ordinal);
 
       for (let index = 0; index < frontModules.length; index++) {
         const teamModule = frontModules[index];
         
-        const teamIndex = testTeams.findIndex((testTeam) => testTeam.id === teamModule.teamId);
+        const teamIndex = teams.findIndex((team) => team.id === teamModule.teamId);
         if (teamIndex > -1) {
-          let team = testTeams[teamIndex];
+          let team = teams[teamIndex];
           
           const foundModuleIndex = readonlyModules.findIndex((moduleItem) => moduleItem.id === teamModule.moduleId);
 
           if (foundModuleIndex > -1) {
             const foundModule = readonlyModules[foundModuleIndex];
-            // console.log(foundModule);
-           
+          
             team.modules.push(foundModule);
           }
 
-          testTeams[teamIndex] = team;
+          teams[teamIndex] = team;
         }
       }
 
     });
-    console.log(testTeams);
-
     });
 
     
 
   });
   
-  function test(event) {
-    console.log(event);
-    console.log(testTeams);
-
+  function update(event) {
     const updateRequests = [];
     // go through and find the each of the modules to update the index
-    for (let i = 0; i < testTeams.length; i++) {
-      const testTeam = testTeams[i];
+    for (let i = 0; i < teams.length; i++) {
+      const team = teams[i];
       
       // update the ordinal
-      for (let j = 0; j < testTeam.modules.length; j++) {
-        const element = testTeam.modules[j];
+      for (let j = 0; j < team.modules.length; j++) {
+        const element = team.modules[j];
 
-        const ttm = testTeamModules.filter((p)=> p.moduleId === element.id && p.teamId === testTeam.id);
+        const ttm = teamModules.filter((p)=> p.moduleId === element.id && p.teamId === team.id);
 
         if (ttm.length === 1) {
 
@@ -170,10 +139,10 @@
 
 <main>
   <div class="teams">
-    {#each testTeams as team, index}
+    {#each teams as team, index}
     <div class="role">{team.name}
       <div class="modules">
-        <DragDropList on:dragEnd={test} bind:data={team.modules}/>
+        <DragDropList on:dragEnd={update} bind:data={team.modules}/>
       </div>
     </div>
     {/each}
@@ -210,7 +179,6 @@
     margin: auto;
     padding: 20px;
     display: grid;
-    // grid-template-rows: 1fr 1fr;
     grid-template-columns: 1fr 1fr 1fr;
     grid-column-gap: 10px;
     
