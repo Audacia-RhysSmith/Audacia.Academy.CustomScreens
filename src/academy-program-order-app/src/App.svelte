@@ -1,5 +1,5 @@
 <script lang="ts">
-  import DragDropList from "svelte-dragdroplist";
+  import DragDropList from "./lib/DragDropList.svelte";
   import academyProgramPlanContext from './api/academy-program-plan.context';
 
   let readonlyModules = [];
@@ -141,7 +141,7 @@
     console.log(event);
     console.log(testTeams);
 
-    const updateRequest = [];
+    const updateRequests = [];
     // go through and find the each of the modules to update the index
     for (let i = 0; i < testTeams.length; i++) {
       const testTeam = testTeams[i];
@@ -154,13 +154,17 @@
 
         if (ttm.length === 1) {
 
-          academyProgramPlanContext.updateModules(ttm[0].id, j);
+          const req = academyProgramPlanContext.updateModules(ttm[0].id, j);
+          console.log(req);
+          updateRequests.push(req);
         }
         
       }
     }
 
-    Promise.all(updateRequest);
+    Promise.all(updateRequests).then((res) => {
+      console.log('done');
+    });
   }
 </script>
 
