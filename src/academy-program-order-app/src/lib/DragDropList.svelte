@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { createEventDispatcher } from "svelte";
 
     import {flip} from "svelte/animate";
@@ -8,16 +8,16 @@ import { createEventDispatcher } from "svelte";
 
     const dispatch = createEventDispatcher();
 
-    let ghost;
-    let grabbed;
+    let ghost: any;
+    let grabbed: any;
 
-    let lastTarget;
+    let lastTarget: any;
 
     let mouseY = 0; // pointer y coordinate within client
     let offsetY = 0; // y distance from top of grabbed element to pointer
     let layerY = 0; // distance from top of list to top of client
 
-    function grab(clientY, element) {
+    function grab(clientY: any, element: any) {
         // modify grabbed element
         grabbed = element;
         grabbed.dataset.grabY = clientY;
@@ -32,7 +32,7 @@ import { createEventDispatcher } from "svelte";
     }
 
     // drag handler updates cursor position
-    function drag(clientY) {
+    function drag(clientY: any) {
         if (grabbed) {
             mouseY = clientY;
             layerY = ghost.parentNode.getBoundingClientRect().y;
@@ -41,7 +41,7 @@ import { createEventDispatcher } from "svelte";
 
     // touchEnter handler emulates the mouseenter event for touch input
     // (more or less)
-    function touchEnter(ev) {       
+    function touchEnter(ev: any) {       
         drag(ev.clientY);
         // trigger dragEnter the first time the cursor moves over a list item
         let target = document.elementFromPoint(ev.clientX, ev.clientY).closest(".item");
@@ -50,8 +50,9 @@ import { createEventDispatcher } from "svelte";
             dragEnter(ev, target);
         }
     }
+    
 
-    function dragEnter(ev, target) {
+    function dragEnter(ev: any, target: any) {
         // swap items in data
         if (grabbed && target != grabbed && target.classList.contains("item")) {
             moveDatum(parseInt(grabbed.dataset.index), parseInt(target.dataset.index));
@@ -59,18 +60,18 @@ import { createEventDispatcher } from "svelte";
     }
 
     // does the actual moving of items in data
-    function moveDatum(from, to) {
+    function moveDatum(from: any, to: any) {
         let temp = data[from];
         data = [...data.slice(0, from), ...data.slice(from + 1)];
         data = [...data.slice(0, to), temp, ...data.slice(to)];
     }
 
-    function release(ev) {
+    function release(ev: any) {
         dispatch('dragEnd', ev);
         grabbed = null;
     }
 
-    function removeDatum(index) {
+    function removeDatum(index: number) {
         data = [...data.slice(0, index), ...data.slice(index + 1)];
     }
 </script>

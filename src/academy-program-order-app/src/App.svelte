@@ -11,16 +11,16 @@
   let teamModules = [] as TeamModule[];
   let cachedTeamModules = [] as TeamModule[];
 
-  const mapModules = (data) => {
-    readonlyModules = data.records.map((item) => { return new IdTextPair(item.id, item.name) });
+  const mapModules = (data: any) => {
+    readonlyModules = data.records.map((item: any) => { return new IdTextPair(item.id, item.name) });
   };
 
-  const mapTeams = (data) => {
-    teams = data.records.map((item) => { return new Team(item.id, item.name, []) });
+  const mapTeams = (data: any) => {
+    teams = data.records.map((item: any) => { return new Team(item.id, item.name, []) });
   };
 
-  const mapTeamModules = (data) => {
-    teamModules = data.records.map((item) => { return new TeamModule(item.id, item.module, item.team, item.ordinal) });
+  const mapTeamModules = (data: any) => {
+    teamModules = data.records.map((item: any) => { return new TeamModule(item.id, item.module, item.team, item.ordinal) });
     cachedTeamModules = cloneDeep(teamModules);
   };
 
@@ -46,16 +46,18 @@
     });
   });
 
-  function getModulesForTeam(teamModules, readonlyModules, team) {
-    const modules = [];
+  function getModulesForTeam(teamModules: TeamModule[], readonlyModules: IdTextPair[], team: Team) {
+    const modules = [] as TeamModule[];
     const qaModules = teamModules.filter((p) => p.teamId === team.id).sort((a, b) => a.ordinal - b.ordinal);
     qaModules.forEach((teamModule, index) => {
 
       const foundModuleIndex = readonlyModules.findIndex((moduleItem) => moduleItem.id === teamModule.moduleId);
       if (foundModuleIndex > -1) {
         const foundModule = readonlyModules[foundModuleIndex];
-        foundModule.ordinal = index;
-        modules.push(foundModule);
+
+        modules.push(new TeamModule(foundModule.id, foundModule.id, teamModule.teamId, index));
+        // foundModule.ordinal = index;
+        // modules.push(foundModule);
       }
     });
     team.modules = modules;
@@ -64,14 +66,14 @@
   }
 
   // Updates the Team Modules when a module is dragged
-  function update(event) {
+  function update(event: any) {
     recalculateOrdinals();
     const teamModuleDifferences = differenceWith(teamModules, cachedTeamModules, isEqual);
 
     console.log('teamModuleDifferences', teamModuleDifferences);
 
-    const requests = [];
-    teamModuleDifferences.forEach((item, index) => {
+    const requests = [] as Promise<any>[];
+    teamModuleDifferences.forEach((item: any, index: number) => {
       const request = academyProgramPlanContext.updateModules(item.id, item.ordinal);
       requests.push(request);
     });

@@ -1,4 +1,4 @@
-import TeamModule from "./team-module.model";
+import type TeamModule from "./team-module.model";
 
 export default class Team {
     id: number;
