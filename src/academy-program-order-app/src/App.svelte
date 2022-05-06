@@ -9,103 +9,55 @@
   let teams = [];
   let teamModules = [];
 
+  const mapModules = (data) => {
+    readonlyModules = data.records.map((item) => ({
+      id: item.id,
+      text: item.name
+    }));
+  };
 
-  academyProgramPlanContext.getModules().then(data => {
-    readonlyModules = data.records.map((item) => {
-      return {
-        id: item.id,
-        text: item.name
-      }
+  const mapTeams = (data) => {
+    teams = data.records.map((item) => ({
+      id: item.id,
+      name: item.name,
+      modules: []
+    }));
+  };
+
+  const mapTeamModules = (data) => {
+    teamModules = data.records.map((item) => ({
+      id: item.id,
+      moduleId: item.module,
+      teamId: item.team,
+      ordinal: item.ordinal,
+    }));
+  };
+
+  const gridfoxCalls = [
+    {call: academyProgramPlanContext.getModules(),      func: mapModules},
+    {call: academyProgramPlanContext.getTeams(),        func: mapTeams },
+    {call: academyProgramPlanContext.getTeamModules(),  func: mapTeamModules },
+  ];
+
+
+  // Seens as though each call is independant of each other
+  // We can call all endpoints asynchronously using Promise.all 
+
+  Promise.all(gridfoxCalls.map((item) => item.call)).then((values) => {
+    
+    // values is each to and array of each calls returned data;
+    // promise.all keeps the order of the request the same so we can use index
+    values.forEach((value, index) => {
+      // Run each func for each call value
+      gridfoxCalls[index].func(value);
     });
 
-    academyProgramPlanContext.getTeams().then(data => {
-      teams = data.records.map((item) => {
-        return {
-          id: item.id,
-          name: item.name,
-          modules: []
-        }
-      });
-
-      academyProgramPlanContext.getTeamModules().then(data => {
-      teamModules = data.records.map((item) => {
-        return {
-          id: item.id,
-          moduleId: item.module,
-          teamId: item.team,
-          ordinal: item.ordinal,
-        }
-      });
-      
-      // qa
-      const qaModules = teamModules.filter((p) => p.teamId === 3).sort((a, b) => a.ordinal - b.ordinal);
-      for (let index = 0; index < qaModules.length; index++) {
-        const teamModule = qaModules[index];
-        
-        const teamIndex = teams.findIndex((team) => team.id === teamModule.teamId);
-        if (teamIndex > -1) {
-          let team = teams[teamIndex];
-          
-          const foundModuleIndex = readonlyModules.findIndex((moduleItem) => moduleItem.id === teamModule.moduleId);
-
-          if (foundModuleIndex > -1) {
-            const foundModule = readonlyModules[foundModuleIndex];
-           
-            team.modules.push(foundModule);
-          }
-
-          teams[teamIndex] = team;
-        }
-      }
-
-      // full
-      const fullModules = teamModules.filter((p) => p.teamId === 1).sort((a, b) => a.ordinal - b.ordinal);
-
-      for (let index = 0; index < fullModules.length; index++) {
-        const teamModule = fullModules[index];
-        
-        const teamIndex = teams.findIndex((team) => team.id === teamModule.teamId);
-        if (teamIndex > -1) {
-          let team = teams[teamIndex];
-          
-          const foundModuleIndex = readonlyModules.findIndex((moduleItem) => moduleItem.id === teamModule.moduleId);
-
-          if (foundModuleIndex > -1) {
-            const foundModule = readonlyModules[foundModuleIndex];
-           
-            team.modules.push(foundModule);
-          }
-
-          teams[teamIndex] = team;
-        }
-      }
-
-      // front
-      const frontModules = teamModules.filter((p) => p.teamId === 2).sort((a, b) => a.ordinal - b.ordinal);
-
-      for (let index = 0; index < frontModules.length; index++) {
-        const teamModule = frontModules[index];
-        
-        const teamIndex = teams.findIndex((team) => team.id === teamModule.teamId);
-        if (teamIndex > -1) {
-          let team = teams[teamIndex];
-          
-          const foundModuleIndex = readonlyModules.findIndex((moduleItem) => moduleItem.id === teamModule.moduleId);
-
-          if (foundModuleIndex > -1) {
-            const foundModule = readonlyModules[foundModuleIndex];
-          
-            team.modules.push(foundModule);
-          }
-
-          teams[teamIndex] = team;
-        }
-      }
-
-    });
+    teams.forEach((team, index) => {
+      console.log(team);
+      teams[index] = academyProgramPlanContext.getModulesForTeam(teamModules, readonlyModules, team);
     });
   });
-  
+
   function update(event) {
     const updateRequests = [];
     // go through and find the each of the modules to update the index
@@ -137,8 +89,9 @@
 <main>
   <div class="teams">
     {#each teams as team, index}
-    <div class="role">{team.name}
-      <div class="modules">
+    <div class="role">
+      <div class="role__title">{team.name}</div>
+      <div class="role__modules">
         <DragDropList on:dragEnd={update} bind:data={team.modules}/>
       </div>
     </div>
@@ -170,64 +123,73 @@
     padding: 0 15px;
     text-align: left;
     border-left: 1px solid rgba(0,0,0,0.1);
+    white-space: nowrap;
   }
 
   .teams {
     margin: auto;
     padding: 20px;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-column-gap: 10px;
+    align-items: flex-start;
+    justify-content: center;
+    grid-template-columns: repeat(3, min-content);
+    grid-column-gap: 40px;
     
     .role {
       width: fit-content;
-      margin: 0 10px 0 10px;
-    }
-  }
-  
-  .modules {
-    margin: auto;
-    padding: 20px;
-    max-width: 900px;
+      background: darken(#fbfbfb, 3%);
+      border-radius: 8px;
+      padding: 20px;
 
-    .module {
-      margin: 15px;
-      background: #fff;
-      border: 1px solid rgba(0,0,0,0.1);
-      border-radius: 6px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      display: flex;
+      &__title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 20px;
+      }
 
-      .cell {
-        padding: 15px;
+      &__modules {
+        margin: auto;
 
-        &:first-child {
-          flex-grow: 1;
-        }
-
-        &:last-child {
-          flex-direction: column;
-          align-items: flex-end;
+        .module {
+          margin: 15px;
+          background: #fff;
+          border: 1px solid rgba(0,0,0,0.1);
+          border-radius: 6px;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.1);
           display: flex;
+
+          .cell {
+            padding: 15px;
+
+            &:first-child {
+              flex-grow: 1;
+            }
+
+            &:last-child {
+              flex-direction: column;
+              align-items: flex-end;
+              display: flex;
+            }
+          }
+
+          .title {
+            margin: 0 0 10px;
+            font-size: 0.8rem;
+            color: gray;
+          }
+
+          .teams {
+            flex-wrap: wrap;
+            display: flex;
+            gap: 6px;
+          }
+
+          .team {
+            padding: 4px 8px;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 4px;
+          }
         }
-      }
-
-      .title {
-        margin: 0 0 10px;
-        font-size: 0.8rem;
-        color: gray;
-      }
-
-      .teams {
-        flex-wrap: wrap;
-        display: flex;
-        gap: 6px;
-      }
-
-      .team {
-        padding: 4px 8px;
-        border: 1px solid rgba(0,0,0,0.1);
-        border-radius: 4px;
       }
     }
   }
