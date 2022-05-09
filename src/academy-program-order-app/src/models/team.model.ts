@@ -1,16 +1,16 @@
-import type TeamModule from "./team-module.model";
+import type IdTextPair from './id-text-pair.model'
 
 export default class Team {
-    id: number;
-    name: string;
-    modules: TeamModule[];
+  id: number
+  name: string
+  modules: IdTextPair[]
 
-    /**
-     * creates a new team
-     */
-    constructor(id: number, name: string, modules: TeamModule[]) {
-        this.id = id;
-        this.name = name;
-        this.modules = modules;
-    }
+  /**
+   * creates a new team
+   */
+  constructor(id: number, name: string, modules: IdTextPair[]) {
+    this.id = id
+    this.name = name
+    this.modules = modules
+  }
 }
