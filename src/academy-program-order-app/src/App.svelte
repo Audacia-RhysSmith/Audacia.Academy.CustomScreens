@@ -116,13 +116,13 @@
 </style>
 
 <script lang="ts">
-  import DragDropList from './lib/DragDropList.svelte'
-  import { differenceWith, isEqual, cloneDeep } from 'lodash'
-  import academyProgramPlanContext from './api/academy-program-plan.context'
-  import IdTextPair from './models/id-text-pair.model'
-  import Team from './models/team.model'
-  import TeamModule from './models/team-module.model'
-import IdTextPairWithLink from './models/id-text-pair-with-link.model';
+  import DragDropList from './lib/DragDropList.svelte';
+  import { differenceWith, isEqual, cloneDeep } from 'lodash';
+  import academyProgramPlanContext from './api/academy-program-plan.context';
+  import IdTextPair from './models/id-text-pair.model';
+  import Team from './models/team.model';
+  import TeamModule from './models/team-module.model';
+  import Module from './models/module.model';
 
   let readonlyModules = [] as IdTextPair[];
   let teams = [] as Team[];
@@ -192,7 +192,7 @@ import IdTextPairWithLink from './models/id-text-pair-with-link.model';
     readonlyModules: IdTextPair[],
     team: Team
   ) {
-    const modules = [] as IdTextPairWithLink[]
+    const modules = [] as Module[]
     const specificTeamModules = teamModules
       .filter(p => p.teamId === team.id)
       .sort((a, b) => a.ordinal - b.ordinal)
@@ -203,18 +203,19 @@ import IdTextPairWithLink from './models/id-text-pair-with-link.model';
       if (foundModuleIndex > -1) {
         const foundModule = readonlyModules[foundModuleIndex]
 
-        const moduleWithLink = new IdTextPairWithLink(
+        const module = new Module(
           foundModule.id,
           foundModule.text,
-          ''
+          '',
           // `/academy/module/${foundModule.id}`
+          'RS'
         );
 
         // modules.push(
         //   new TeamModule(foundModule.id, foundModule.id, teamModule.teamId, index)
         // )
         modules.push(
-          moduleWithLink
+          module
         )
       }
     })
