@@ -122,6 +122,7 @@
   import IdTextPair from './models/id-text-pair.model'
   import Team from './models/team.model'
   import TeamModule from './models/team-module.model'
+import IdTextPairWithLink from './models/id-text-pair-with-link.model';
 
   let readonlyModules = [] as IdTextPair[];
   let teams = [] as Team[];
@@ -191,7 +192,7 @@
     readonlyModules: IdTextPair[],
     team: Team
   ) {
-    const modules = [] as IdTextPair[]
+    const modules = [] as IdTextPairWithLink[]
     const specificTeamModules = teamModules
       .filter(p => p.teamId === team.id)
       .sort((a, b) => a.ordinal - b.ordinal)
@@ -202,11 +203,18 @@
       if (foundModuleIndex > -1) {
         const foundModule = readonlyModules[foundModuleIndex]
 
+        const moduleWithLink = new IdTextPairWithLink(
+          foundModule.id,
+          foundModule.text,
+          ''
+          // `/academy/module/${foundModule.id}`
+        );
+
         // modules.push(
         //   new TeamModule(foundModule.id, foundModule.id, teamModule.teamId, index)
         // )
         modules.push(
-          foundModule
+          moduleWithLink
         )
       }
     })
