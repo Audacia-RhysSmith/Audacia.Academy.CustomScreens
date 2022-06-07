@@ -34,11 +34,32 @@
     grid-template-columns: repeat(3, min-content);
     grid-column-gap: 40px;
 
+    .week {
+      width: fit-content;
+      background: darken($color: cyan, $amount: 5%);
+      border-radius: 8px;
+      padding: 20px;
+      grid-column-end: -4;
+
+      &__date {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0 0 20px;
+      }
+    }
+
     .role {
       width: fit-content;
       background: darken(#fbfbfb, 3%);
       border-radius: 8px;
       padding: 20px;
+      grid-row: 1;
+      grid-auto-flow: dense;
+      grid-column-start: 2;
+
+      &:nth-child(3n+1) {grid-column:1}
+      &:nth-child(3n+2) {grid-column:2}
+      &:nth-child(3n+3) {grid-column:3}
 
       &__title {
         font-size: 1.4rem;
@@ -102,10 +123,27 @@
   import Team from './models/team.model'
   import TeamModule from './models/team-module.model'
 
-  let readonlyModules = [] as IdTextPair[]
-  let teams = [] as Team[]
-  let teamModules = [] as TeamModule[]
-  let cachedTeamModules = [] as TeamModule[]
+  let readonlyModules = [] as IdTextPair[];
+  let teams = [] as Team[];
+  let teamModules = [] as TeamModule[];
+  let cachedTeamModules = [] as TeamModule[];
+  const academyStartDateString = import.meta.env.VITE_ACADEMY_START_DATE as string;
+  const academyWeekDuration = +import.meta.env.VITE_ACADEMY_WEEK_DURATION as number;
+  const [academyStartDateDay, academyStartDateMonth, academyStartDateYear] = academyStartDateString.split('/');
+  console.log(academyStartDateString, academyStartDateDay, academyStartDateMonth, academyStartDateYear);
+  const academyStartDate = new Date(+academyStartDateYear, +academyStartDateMonth - 1, +academyStartDateDay) as Date;
+
+  console.log(import.meta.env);
+
+  console.log(academyStartDate, academyWeekDuration);
+
+  let weeks = [] as Date[];
+
+  weeks = Array.from({ length: academyWeekDuration }, (_, i) => {
+    const date = new Date(academyStartDate.getTime() + i * 7 * 24 * 60 * 60 * 1000)
+    console.log(date);
+    return date;
+  });
 
   const mapModules = (data: any) => {
     readonlyModules = data.records.map((item: any) => {
@@ -188,11 +226,9 @@
     teamModuleDifferences.forEach((item: any, index: number) => {
       const request = academyProgramPlanContext.updateModules(item.id, item.ordinal)
       requests.push(request)
-    })
+    });
 
-    console.log(requests.length)
-
-    Promise.all(requests).then(res => {})
+    // Promise.all(requests).then(res => {})
   }
 
   // Recalculate the ordinals for the modules
@@ -216,12 +252,17 @@
 
 <main>
   <div class="teams">
-    {#each teams as team, index}
+    {#each weeks as week, weekIndex}
+      <div class="week">
+        <div class="week__date">{week}</div>
+      </div>
+    {/each}
+    {#each teams as team, teamIndex}
       <div class="role">
         <div class="role__title">{team.name}</div>
         <div class="role__modules">
-          <DragDropList on:dragEnd={update} bind:data={team.modules} />
-        </div>
+            <DragDropList on:dragEnd={update} bind:data={team.modules} />
+          </div>
       </div>
     {/each}
   </div>

@@ -3,7 +3,7 @@ class GridfoxHttp {
 
   private url = 'https://api.gridfox.com'
 
-  private apiKey: string = import.meta.env.VITE_GRIDFOX_API_KEY
+  private apiKey: string = import.meta.env.VITE_GRIDFOX_API_KEY as string;
 
   private parentURL = new URL(document.referrer || this.url)
 
